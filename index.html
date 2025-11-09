@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vchat - AI Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://js.puter.com/v2/"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loader-container">
+            <div class="glossy-loader"></div>
+            <p class="loading-text">Initializing Vchat...</p>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen hidden">
+        <div class="login-container glass-card">
+            <div class="logo">
+                <div class="logo-icon">💬</div>
+                <h1>Vchat</h1>
+            </div>
+            <p class="subtitle">Your AI-Powered Assistant</p>
+            <div class="features">
+                <div class="feature-item">
+                    <span class="feature-icon">🤖</span>
+                    <span>AI Chat</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🎨</span>
+                    <span>Text to Image</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🎤</span>
+                    <span>Speech Recognition</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔊</span>
+                    <span>Text to Speech</span>
+                </div>
+            </div>
+            <button id="loginBtn" class="btn-primary">
+                <span>Sign in with Puter</span>
+                <span class="btn-arrow">→</span>
+            </button>
+            <p class="login-note">Secure authentication powered by Puter</p>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="main-app hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar glass-panel">
+            <div class="sidebar-header">
+                <button id="newChatBtn" class="btn-new-chat">
+                    <span class="icon">✨</span>
+                    <span>New Chat</span>
+                </button>
+            </div>
+            
+            <div class="chat-history" id="chatHistory">
+                <!-- Chat history items will be added here -->
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-profile glass-card" id="userProfile">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Loading...</div>
+                        <div class="user-email" id="userEmail">Loading...</div>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="btn-logout">
+                    <span class="icon">🚪</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="chat-header glass-panel">
+                <button id="toggleSidebar" class="btn-icon">
+                    <span>☰</span>
+                </button>
+                <div class="header-title">
+                    <h2 id="chatTitle">New Chat</h2>
+                </div>
+                <div class="header-actions">
+                    <button id="clearChatBtn" class="btn-icon" title="Clear Current Chat">
+                        <span>🗑️</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="chat-container">
+                <!-- Welcome Screen -->
+                <div id="welcomeScreen" class="welcome-screen">
+                    <div class="welcome-content">
+                        <div class="welcome-logo">
+                            <div class="logo-icon-large">💬</div>
+                        </div>
+                        <h1 class="welcome-title">Welcome to Vchat</h1>
+                        <p class="welcome-subtitle">How can I help you today?</p>
+                        
+                        <div class="capability-grid">
+                            <div class="capability-card glass-card" data-prompt="Tell me a creative story">
+                                <div class="capability-icon">✍️</div>
+                                <h3>Creative Writing</h3>
+                                <p>Generate stories, poems, and creative content</p>
+                            </div>
+                            <div class="capability-card glass-card" data-prompt="Create an image of a sunset over mountains">
+                                <div class="capability-icon">🎨</div>
+                                <h3>Text to Image</h3>
+                                <p>Generate beautiful images from text descriptions</p>
+                            </div>
+                            <div class="capability-card glass-card" data-prompt="Explain quantum computing in simple terms">
+                                <div class="capability-icon">🧠</div>
+                                <h3>Knowledge</h3>
+                                <p>Get answers to your questions</p>
+                            </div>
+                            <div class="capability-card glass-card" data-prompt="Help me with coding">
+                                <div class="capability-icon">💻</div>
+                                <h3>Code Assistant</h3>
+                                <p>Get help with programming tasks</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div id="chatMessages" class="chat-messages">
+                    <!-- Messages will be added here -->
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area glass-panel">
+                <div class="input-container">
+                    <button id="attachBtn" class="btn-icon" title="Attachments">
+                        <span>📎</span>
+                    </button>
+                    <textarea 
+                        id="messageInput" 
+                        class="message-input" 
+                        placeholder="Message Vchat..." 
+                        rows="1"
+                    ></textarea>
+                    <div class="input-actions">
+                        <button id="voiceBtn" class="btn-icon" title="Voice Input">
+                            <span>🎤</span>
+                        </button>
+                        <button id="imageBtn" class="btn-icon" title="Generate Image">
+                            <span>🎨</span>
+                        </button>
+                        <button id="sendBtn" class="btn-send" disabled>
+                            <span>↑</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-footer">
+                    <span class="model-info">Powered by Puter AI</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Image Generation -->
+    <div id="imageModal" class="modal hidden">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h3>Generate Image</h3>
+                <button class="btn-close" id="closeImageModal">×</button>
+            </div>
+            <div class="modal-body">
+                <label for="imagePrompt">Describe the image you want to generate:</label>
+                <textarea 
+                    id="imagePrompt" 
+                    class="image-prompt-input" 
+                    placeholder="e.g., A serene sunset over mountains with a calm lake..."
+                    rows="4"
+                ></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelImageBtn">Cancel</button>
+                <button class="btn-primary" id="generateImageBtn">
+                    <span>Generate</span>
+                    <span class="btn-arrow">✨</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
