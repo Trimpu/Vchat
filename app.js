@@ -628,6 +628,27 @@ async function loadChatHistory() {
         if (stored) {
             AppState.chats = JSON.parse(stored);
             
+            // Clean up old messages with object content
+            Object.keys(AppState.chats).forEach(chatId => {
+                const chat = AppState.chats[chatId];
+                chat.messages = chat.messages.map(msg => {
+                    if (typeof msg.content === 'object' && msg.content !== null) {
+                        // Extract content from object
+                        if (msg.content.content) {
+                            msg.content = msg.content.content;
+                        } else if (msg.content.message) {
+                            msg.content = msg.content.message;
+                        } else if (msg.content.text) {
+                            msg.content = msg.content.text;
+                        }
+                    }
+                    return msg;
+                });
+            });
+            
+            // Save cleaned data
+            saveChatHistory();
+            
             // Load the most recent chat
             const chatIds = Object.keys(AppState.chats);
             if (chatIds.length > 0) {
