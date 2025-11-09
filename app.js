@@ -317,10 +317,17 @@ async function sendMessage() {
         // Remove loading
         removeLoadingMessage();
         
+        // Handle response - convert to string if it's an object
+        let responseText = response;
+        if (typeof response === 'object') {
+            // If it's a ChatResponse object, extract the text
+            responseText = response.message || response.text || response.content || JSON.stringify(response);
+        }
+        
         // Add assistant message
         chat.messages.push({
             role: 'assistant',
-            content: response,
+            content: responseText,
             timestamp: Date.now()
         });
         
@@ -516,14 +523,35 @@ function renderMessage(message) {
     const avatar = isUser ? '👤' : '🤖';
     const author = isUser ? 'You' : 'Vchat';
     
+    // Convert message content to string if it's an object
+    let contentText = message.content;
+    if (typeof contentText === 'object') {
+        contentText = JSON.stringify(contentText, null, 2);
+    }
+    
     let imageHtml = '';
     if (message.imageUrl) {
         imageHtml = `
             <div class="message-image">
                 <img src="${message.imageUrl}" alt="Generated image" loading="lazy">
+                <div class="image-actions">
+                    <button class="btn-image-action" onclick="downloadImage('${message.imageUrl}')" title="Download Image">
+                        <span>⬇️</span> Download
+                    </button>
+                    <button class="btn-image-action" onclick="openImageInNewTab('${message.imageUrl}')" title="Open in New Tab">
+                        <span>🔗</span> Open
+                    </button>
+                </div>
             </div>
         `;
     }
+    
+    // Add copy button for assistant messages
+    const copyButton = !isUser ? `
+        <button class="btn-copy-message" onclick="copyMessageText(this)" title="Copy message">
+            <span>📋</span>
+        </button>
+    ` : '';
     
     return `
         <div class="message ${message.role}">
@@ -532,8 +560,9 @@ function renderMessage(message) {
                 <div class="message-author">${author}</div>
             </div>
             <div class="message-content">
-                ${formatMessageContent(message.content)}
+                ${formatMessageContent(contentText)}
                 ${imageHtml}
+                ${copyButton}
             </div>
         </div>
     `;
@@ -661,4 +690,55 @@ function formatMessageContent(content) {
 const sidebar = document.querySelector('.sidebar');
 if (sidebar) {
     elements.sidebar = sidebar;
+}
+
+// ===== Image & Copy Functions =====
+function downloadImage(imageUrl) {
+    fetch(imageUrl)
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vchat-image-${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        })
+        .catch(error => {
+            console.error('Download error:', error);
+            // Fallback: open in new tab
+            window.open(imageUrl, '_blank');
+        });
+}
+
+function openImageInNewTab(imageUrl) {
+    window.open(imageUrl, '_blank');
+}
+
+function copyMessageText(button) {
+    const messageContent = button.parentElement;
+    // Get text content, excluding the copy button itself
+    const textToCopy = Array.from(messageContent.childNodes)
+        .filter(node => node !== button && node.nodeType === Node.TEXT_NODE || node.nodeName !== 'BUTTON')
+        .map(node => node.textContent)
+        .join('')
+        .trim();
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        // Show feedback
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<span>✅</span>';
+        button.style.background = 'rgba(74, 222, 128, 0.2)';
+        
+        setTimeout(() => {
+            button.innerHTML = originalContent;
+            button.style.background = '';
+        }, 2000);
+    }).catch(error => {
+        console.error('Copy error:', error);
+        alert('Failed to copy text');
+    });
 }
