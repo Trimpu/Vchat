@@ -317,12 +317,25 @@ async function sendMessage() {
         // Remove loading
         removeLoadingMessage();
         
-        // Handle response - convert to string if it's an object
+        // Handle response - extract content from object
         let responseText = response;
-        if (typeof response === 'object') {
-            // If it's a ChatResponse object, extract the text
-            responseText = response.message || response.text || response.content || JSON.stringify(response);
+        if (typeof response === 'object' && response !== null) {
+            // Extract content from various possible object structures
+            if (response.content) {
+                responseText = response.content;
+            } else if (response.message) {
+                responseText = response.message;
+            } else if (response.text) {
+                responseText = response.text;
+            } else if (response.choices && response.choices[0]) {
+                responseText = response.choices[0].message?.content || response.choices[0].text;
+            } else {
+                responseText = JSON.stringify(response);
+            }
         }
+        
+        // Ensure it's a string
+        responseText = String(responseText);
         
         // Add assistant message
         chat.messages.push({
@@ -525,9 +538,21 @@ function renderMessage(message) {
     
     // Convert message content to string if it's an object
     let contentText = message.content;
-    if (typeof contentText === 'object') {
-        contentText = JSON.stringify(contentText, null, 2);
+    if (typeof contentText === 'object' && contentText !== null) {
+        // Extract content from object if it exists
+        if (contentText.content) {
+            contentText = contentText.content;
+        } else if (contentText.message) {
+            contentText = contentText.message;
+        } else if (contentText.text) {
+            contentText = contentText.text;
+        } else {
+            contentText = JSON.stringify(contentText, null, 2);
+        }
     }
+    
+    // Ensure it's a string
+    contentText = String(contentText);
     
     let imageHtml = '';
     if (message.imageUrl) {
