@@ -311,8 +311,17 @@ async function sendMessage() {
     addLoadingMessage();
     
     try {
-        // Call Puter AI
-        const response = await puter.ai.chat(message);
+        // Call Puter AI with error handling
+        console.log('Calling Puter AI with message:', message);
+        
+        let response;
+        try {
+            response = await puter.ai.chat(message);
+            console.log('Puter AI response:', response);
+        } catch (apiError) {
+            console.error('Puter API error:', apiError);
+            throw new Error('Failed to connect to AI service. Please make sure you are signed in and try again.');
+        }
         
         // Remove loading
         removeLoadingMessage();
@@ -330,6 +339,7 @@ async function sendMessage() {
             } else if (response.choices && response.choices[0]) {
                 responseText = response.choices[0].message?.content || response.choices[0].text;
             } else {
+                console.warn('Unexpected response format:', response);
                 responseText = JSON.stringify(response);
             }
         }
@@ -350,10 +360,19 @@ async function sendMessage() {
         console.error('Chat error:', error);
         removeLoadingMessage();
         
-        // Add error message
+        // Add detailed error message
+        let errorMessage = 'Sorry, I encountered an error. ';
+        if (error.message && error.message.includes('signed in')) {
+            errorMessage += 'Please make sure you are signed in with Puter.';
+        } else if (!navigator.onLine) {
+            errorMessage += 'Please check your internet connection.';
+        } else {
+            errorMessage += 'Please try again or refresh the page.';
+        }
+        
         chat.messages.push({
             role: 'assistant',
-            content: 'Sorry, I encountered an error. Please try again.',
+            content: errorMessage,
             timestamp: Date.now(),
             error: true
         });
@@ -424,8 +443,22 @@ async function generateImage() {
     addLoadingMessage();
     
     try {
-        // Call Puter text-to-image AI
-        const imageUrl = await puter.ai.txt2img(prompt);
+        // Call Puter text-to-image AI with error handling
+        console.log('Calling Puter txt2img with prompt:', prompt);
+        
+        let imageUrl;
+        try {
+            imageUrl = await puter.ai.txt2img(prompt);
+            console.log('Image generated:', imageUrl);
+        } catch (apiError) {
+            console.error('Puter txt2img API error:', apiError);
+            throw new Error('Failed to generate image. Please make sure you are signed in and try again.');
+        }
+        
+        // Validate image URL
+        if (!imageUrl || typeof imageUrl !== 'string') {
+            throw new Error('Invalid image URL returned from API');
+        }
         
         // Remove loading
         removeLoadingMessage();
@@ -444,10 +477,19 @@ async function generateImage() {
         console.error('Image generation error:', error);
         removeLoadingMessage();
         
-        // Add error message
+        // Add detailed error message
+        let errorMessage = 'Sorry, I couldn\'t generate the image. ';
+        if (error.message && error.message.includes('signed in')) {
+            errorMessage += 'Please make sure you are signed in with Puter.';
+        } else if (!navigator.onLine) {
+            errorMessage += 'Please check your internet connection.';
+        } else {
+            errorMessage += 'Please try again or refresh the page. Image generation may have usage limits.';
+        }
+        
         chat.messages.push({
             role: 'assistant',
-            content: 'Sorry, I couldn\'t generate the image. Please try again.',
+            content: errorMessage,
             timestamp: Date.now(),
             error: true
         });
